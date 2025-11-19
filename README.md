@@ -10,21 +10,79 @@
 - **安全機制**：修改或刪除行程前，會跳出確認視窗，避免誤操作。
 - **繁體中文介面**：全站採用繁體中文設計，親切易用。
 
+## 前置準備
+
+在開始之前，您需要：
+
+1.  一個 Google 帳號。
+2.  已安裝 Node.js (建議 v18 以上)。
+3.  一個 Google Cloud Platform (GCP) 專案。
+
+## Google Cloud 設定教學
+
+要讓此專案能夠存取您的 Google Calendar，您需要設定 Google Cloud 專案並取得 OAuth 憑證。
+
+### 1. 建立專案與啟用 API
+
+1.  前往 [Google Cloud Console](https://console.cloud.google.com/)。
+2.  建立一個新專案 (例如命名為 `smart-calendar-assistant`)。
+3.  在左側選單選擇 **「API 和服務」** > **「已啟用的 API 和服務」**。
+4.  點擊上方的 **「+ 啟用 API 和服務」**。
+5.  搜尋 **"Google Calendar API"** 並啟用它。
+
+### 2. 設定 OAuth 同意畫面
+
+1.  在左側選單選擇 **「API 和服務」** > **「OAuth 同意畫面」**。
+2.  User Type 選擇 **「外部 (External)」**，然後點擊 **「建立」**。
+3.  填寫應用程式資訊：
+    - **應用程式名稱**：Smart Calendar Assistant
+    - **使用者支援電子郵件**：選擇您的 Email
+    - **開發人員聯絡資訊**：填寫您的 Email
+4.  點擊 **「儲存並繼續」**。
+5.  **範圍 (Scopes)** 頁面：
+    - 點擊 **「新增或移除範圍」**。
+    - 搜尋並勾選 `.../auth/calendar` (查看、編輯、分享及永久刪除您 Google 日曆中的所有日曆)。
+    - 點擊 **「更新」**。
+6.  點擊 **「儲存並繼續」**。
+7.  **測試使用者 (Test Users)** 頁面：
+    - 點擊 **「+ ADD USERS」**。
+    - 輸入您要用來測試的 Google 帳號 Email (非常重要，否則無法登入)。
+    - 點擊 **「儲存並繼續」**。
+
+### 3. 建立 OAuth 憑證
+
+1.  在左側選單選擇 **「API 和服務」** > **「憑證」**。
+2.  點擊上方的 **「+ 建立憑證」** > **「OAuth 用戶端 ID」**。
+3.  **應用程式類型** 選擇 **「網頁應用程式」**。
+4.  **名稱** 可以維持預設或自訂。
+5.  **已授權的 JavaScript 來源**：
+    - 新增 `http://localhost:3000`
+6.  **已授權的重新導向 URI**：
+    - 新增 `http://localhost:3000/auth/google/callback`
+7.  點擊 **「建立」**。
+8.  畫面會顯示您的 **用戶端 ID (Client ID)** 和 **用戶端密碼 (Client Secret)**，請將它們複製下來備用。
+
 ## 安裝與設定
 
-### 1. 準備 API 金鑰
+### 1. 取得 Gemini API Key
 
-您需要在專案根目錄建立一個 `.env` 檔案，並填入以下資訊：
+1.  前往 [Google AI Studio](https://aistudio.google.com/)。
+2.  點擊 **"Get API key"**。
+3.  建立一個新的 API key。
+
+### 2. 設定環境變數
+
+在專案根目錄建立一個 `.env` 檔案，並填入以下資訊：
 
 ```bash
-GOOGLE_CLIENT_ID=您的_google_client_id
-GOOGLE_CLIENT_SECRET=您的_google_client_secret
-GEMINI_API_KEY=您的_gemini_api_key
+GOOGLE_CLIENT_ID=您的_google_client_id      # 從 GCP 取得
+GOOGLE_CLIENT_SECRET=您的_google_client_secret  # 從 GCP 取得
+GEMINI_API_KEY=您的_gemini_api_key        # 從 Google AI Studio 取得
 REDIRECT_URI=http://localhost:3000/auth/google/callback
 PORT=3000
 ```
 
-### 2. 安裝依賴套件
+### 3. 安裝依賴套件
 
 請在終端機執行以下指令：
 
@@ -32,7 +90,7 @@ PORT=3000
 npm install
 ```
 
-### 3. 啟動應用程式
+### 4. 啟動應用程式
 
 ```bash
 npm start
