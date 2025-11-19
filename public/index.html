@@ -1,41 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Calendar Assistant</title>
+    <title>智慧行事曆助理</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="container">
         <header>
-            <div class="logo">SmartCal</div>
+            <div class="logo">SmartCal 智慧行事曆</div>
             <div class="user-controls">
-                <button id="loginBtn" class="btn primary">Connect Google Calendar</button>
+                <button id="loginBtn" class="btn primary">連結 Google 日曆</button>
             </div>
         </header>
-        
+
         <main>
             <div class="calendar-container">
                 <div id="calendar"></div>
             </div>
-            
+
             <div class="chat-container">
                 <div class="chat-header">
-                    <h3>Assistant</h3>
+                    <h3>AI 助理</h3>
                 </div>
                 <div class="chat-messages" id="chatMessages">
                     <div class="message system">
-                        Hello! I can help you manage your schedule. Try saying "Show me my events for today" or "Book a meeting with Alice tomorrow at 10am".
+                        你好！我可以幫你管理行程。試著說「顯示今天的行程」或「明天早上10點幫我安排跟客戶開會」。
                     </div>
                 </div>
                 <div class="chat-input-area">
-                    <input type="text" id="chatInput" placeholder="Type your request..." disabled>
+                    <input type="text" id="chatInput" placeholder="輸入你的需求..." disabled>
                     <button id="sendBtn" disabled>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
                     </button>
                 </div>
             </div>
@@ -45,15 +51,16 @@
     <!-- Confirmation Modal -->
     <div id="confirmModal" class="modal">
         <div class="modal-content">
-            <h3>Confirm Action</h3>
-            <p id="confirmText">Are you sure?</p>
+            <h3>確認動作</h3>
+            <p id="confirmText">你確定嗎？</p>
             <div class="modal-actions">
-                <button id="cancelActionBtn" class="btn secondary">Cancel</button>
-                <button id="confirmActionBtn" class="btn primary">Confirm</button>
+                <button id="cancelActionBtn" class="btn secondary">取消</button>
+                <button id="confirmActionBtn" class="btn primary">確認</button>
             </div>
         </div>
     </div>
 
     <script src="app.js"></script>
 </body>
+
 </html>

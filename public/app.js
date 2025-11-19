@@ -34,10 +34,17 @@ document.addEventListener('DOMContentLoaded', function () {
     function initCalendar() {
         calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'timeGridWeek',
+            locale: 'zh-tw', // Set locale to Traditional Chinese
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            buttonText: {
+                today: '今天',
+                month: '月',
+                week: '週',
+                day: '日'
             },
             height: '100%',
             events: '/api/calendar/events', // Fetch events from our API
@@ -66,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             handleAiResponse(data);
         } catch (error) {
-            addMessage("Error communicating with server.", 'system');
+            addMessage("無法連線到伺服器。", 'system');
             console.error(error);
         }
     }
@@ -109,11 +116,11 @@ document.addEventListener('DOMContentLoaded', function () {
         let actionText = "";
         const details = data.eventDetails;
         if (data.action === 'insert') {
-            actionText = `Create event "${details.summary}" at ${new Date(details.start.dateTime).toLocaleString()}?`;
+            actionText = `建立行程 "${details.summary}" 時間：${new Date(details.start.dateTime).toLocaleString('zh-TW')}？`;
         } else if (data.action === 'delete') {
-            actionText = `Delete event "${details.summary}"?`; // Note: summary might be missing if not fetched, but AI should provide context
+            actionText = `刪除行程 "${details.summary}"？`; // Note: summary might be missing if not fetched, but AI should provide context
         } else if (data.action === 'update') {
-            actionText = `Update event to "${details.summary}" at ${new Date(details.start.dateTime).toLocaleString()}?`;
+            actionText = `更新行程為 "${details.summary}" 時間：${new Date(details.start.dateTime).toLocaleString('zh-TW')}？`;
         }
 
         confirmText.textContent = actionText;
@@ -131,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
     cancelActionBtn.addEventListener('click', () => {
         confirmModal.style.display = 'none';
         pendingAction = null;
-        addMessage("Action cancelled.", 'system');
+        addMessage("動作已取消。", 'system');
     });
 
     async function executeAction(data) {
@@ -156,14 +163,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (response && response.ok) {
-                addMessage("Done!", 'system');
+                addMessage("完成！", 'system');
                 calendar.refetchEvents();
             } else {
-                addMessage("Something went wrong executing the action.", 'system');
+                addMessage("執行動作時發生錯誤。", 'system');
             }
         } catch (error) {
             console.error(error);
-            addMessage("Error executing action.", 'system');
+            addMessage("執行動作錯誤。", 'system');
         }
     }
 });
