@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const confirmText = document.getElementById('confirmText');
     const confirmActionBtn = document.getElementById('confirmActionBtn');
     const cancelActionBtn = document.getElementById('cancelActionBtn');
+    const eventDetailModal = document.getElementById('eventDetailModal');
+    const eventDetailTitle = document.getElementById('eventDetailTitle');
+    const eventDetailContent = document.getElementById('eventDetailContent');
+    const closeEventDetailBtn = document.getElementById('closeEventDetailBtn');
 
     let calendar;
     let pendingAction = null;
@@ -47,7 +51,49 @@ document.addEventListener('DOMContentLoaded', function () {
                 day: '日'
             },
             height: '100%',
-            events: '/api/calendar/events', // Fetch events from our API
+            events: async function (info, successCallback, failureCallback) {
+                try {
+                    // 使用當前視圖的時間範圍來獲取事件
+                    const timeMin = info.start.toISOString();
+                    const timeMax = info.end.toISOString();
+                    
+                    const response = await fetch(`/api/calendar/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}`);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    const googleEvents = await response.json();
+
+                    const events = googleEvents.map(event => {
+                        // Handle all-day events (date only) vs timed events (dateTime)
+                        const start = event.start.dateTime || event.start.date;
+                        const end = event.end.dateTime || event.end.date;
+
+                        return {
+                            id: event.id,
+                            title: event.summary || '(無標題)',
+                            start: start,
+                            end: end,
+                            // url: event.htmlLink, // Removed as per user request
+                            // Store original object for other uses
+                            extendedProps: {
+                                description: event.description,
+                                location: event.location,
+                                attendees: event.attendees,
+                                htmlLink: event.htmlLink,
+                                creator: event.creator,
+                                organizer: event.organizer,
+                                startRaw: event.start,
+                                endRaw: event.end
+                            }
+                        };
+                    });
+
+                    successCallback(events);
+                } catch (error) {
+                    console.error('Error fetching events:', error);
+                    failureCallback(error);
+                }
+            },
             eventColor: '#2563eb',
             editable: true,
             selectable: true,
@@ -78,6 +124,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     info.revert(); // Revert change on error
                     alert('更新失敗，請稍後再試。');
                 }
+            },
+            eventClick: function (info) {
+                // 顯示事件詳情彈窗
+                showEventDetails(info.event);
             }
         });
         calendar.render();
@@ -202,5 +252,127 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error(error);
             addMessage("執行動作錯誤。", 'system');
         }
+    }
+
+    // 顯示事件詳情
+    function showEventDetails(event) {
+        const props = event.extendedProps;
+        const title = event.title || '(無標題)';
+        
+        // 格式化時間
+        let timeText = '';
+        if (props.startRaw) {
+            const isAllDay = !props.startRaw.dateTime;
+            if (isAllDay) {
+                const startDate = new Date(props.startRaw.date);
+                const endDate = new Date(props.endRaw.date);
+                // 全天事件的結束日期是排他性的，所以減去一天
+                endDate.setDate(endDate.getDate() - 1);
+                
+                if (startDate.getTime() === endDate.getTime()) {
+                    timeText = startDate.toLocaleDateString('zh-TW', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        weekday: 'long'
+                    });
+                } else {
+                    timeText = `${startDate.toLocaleDateString('zh-TW', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric'
+                    })} - ${endDate.toLocaleDateString('zh-TW', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric'
+                    })}`;
+                }
+                timeText = `全天事件：${timeText}`;
+            } else {
+                const start = new Date(props.startRaw.dateTime);
+                const end = new Date(props.endRaw.dateTime);
+                timeText = `${start.toLocaleString('zh-TW', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    weekday: 'long',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })} - ${end.toLocaleTimeString('zh-TW', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })}`;
+            }
+        }
+
+        // 構建詳情內容
+        let contentHTML = `<div class="event-detail-section">
+            <div class="event-detail-time">${timeText}</div>
+        </div>`;
+
+        if (props.description) {
+            contentHTML += `<div class="event-detail-section">
+                <div class="event-detail-label">描述</div>
+                <div class="event-detail-value">${escapeHtml(props.description)}</div>
+            </div>`;
+        }
+
+        if (props.location) {
+            contentHTML += `<div class="event-detail-section">
+                <div class="event-detail-label">地點</div>
+                <div class="event-detail-value">${escapeHtml(props.location)}</div>
+            </div>`;
+        }
+
+        if (props.attendees && props.attendees.length > 0) {
+            const attendeesList = props.attendees.map(attendee => {
+                const name = attendee.displayName || attendee.email || '未知';
+                const status = attendee.responseStatus === 'accepted' ? '✓ 已接受' :
+                             attendee.responseStatus === 'declined' ? '✗ 已拒絕' :
+                             attendee.responseStatus === 'tentative' ? '? 暫定' : '○ 未回應';
+                return `<div class="event-detail-attendee">${escapeHtml(name)} <span class="attendee-status">${status}</span></div>`;
+            }).join('');
+            contentHTML += `<div class="event-detail-section">
+                <div class="event-detail-label">參與者</div>
+                <div class="event-detail-value">${attendeesList}</div>
+            </div>`;
+        }
+
+        if (props.organizer) {
+            const organizerName = props.organizer.displayName || props.organizer.email || '未知';
+            contentHTML += `<div class="event-detail-section">
+                <div class="event-detail-label">主辦人</div>
+                <div class="event-detail-value">${escapeHtml(organizerName)}</div>
+            </div>`;
+        }
+
+        if (props.htmlLink) {
+            contentHTML += `<div class="event-detail-section">
+                <a href="${props.htmlLink}" target="_blank" class="event-detail-link">在 Google 日曆中開啟</a>
+            </div>`;
+        }
+
+        eventDetailTitle.textContent = title;
+        eventDetailContent.innerHTML = contentHTML;
+        eventDetailModal.style.display = 'flex';
+    }
+
+    // 關閉事件詳情
+    closeEventDetailBtn.addEventListener('click', () => {
+        eventDetailModal.style.display = 'none';
+    });
+
+    // 點擊模態框外部關閉
+    eventDetailModal.addEventListener('click', (e) => {
+        if (e.target === eventDetailModal) {
+            eventDetailModal.style.display = 'none';
+        }
+    });
+
+    // HTML 轉義函數
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 });
