@@ -15,11 +15,7 @@ app.use(bodyParser.json());
 app.use(express.static('public'));
 
 // OAuth2 Client Setup
-const oauth2Client = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.REDIRECT_URI || 'http://localhost:3000/auth/google/callback'
-);
+const { oauth2Client } = require('./services/auth');
 
 // Routes
 app.get('/auth/google', (req, res) => {
@@ -107,4 +103,4 @@ app.listen(PORT, () => {
 });
 
 // Export oauth2Client for services to use (if we keep it singleton for this single-user tool)
-module.exports = { oauth2Client };
+// module.exports = { oauth2Client };

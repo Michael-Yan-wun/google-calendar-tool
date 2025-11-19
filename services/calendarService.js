@@ -1,5 +1,5 @@
 const { google } = require('googleapis');
-const { oauth2Client } = require('../server');
+const { oauth2Client } = require('./auth');
 
 const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 

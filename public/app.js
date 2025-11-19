@@ -48,7 +48,37 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             height: '100%',
             events: '/api/calendar/events', // Fetch events from our API
-            eventColor: '#2563eb'
+            eventColor: '#2563eb',
+            editable: true,
+            selectable: true,
+            selectMirror: true,
+            dayMaxEvents: true,
+            eventDrop: async function (info) {
+                // Handle event drop (time change)
+                const event = info.event;
+                const newStart = event.start.toISOString();
+                const newEnd = event.end ? event.end.toISOString() : null;
+
+                try {
+                    const response = await fetch(`/api/calendar/events/${event.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            start: { dateTime: newStart },
+                            end: { dateTime: newEnd }
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Update failed');
+                    }
+                    // Optional: Show success message
+                } catch (error) {
+                    console.error('Error updating event:', error);
+                    info.revert(); // Revert change on error
+                    alert('更新失敗，請稍後再試。');
+                }
+            }
         });
         calendar.render();
     }
