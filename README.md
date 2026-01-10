@@ -73,7 +73,7 @@
 
 ### 2. 設定環境變數
 
-在專案根目錄建立一個 `.env` 檔案，並填入以下資訊：
+在專案根目錄建立一個 `.env` 檔案，並填入以下資訊，GOOGLE_CLIENT_ID與GOOGLE_CLIENT_SECRET在API與服務->憑證->OAuth 2.0用戶端ID中點擊以創建過的就可以找到：
 
 ```bash
 GOOGLE_CLIENT_ID=您的_google_client_id      # 從 GCP 取得
